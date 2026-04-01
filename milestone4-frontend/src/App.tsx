@@ -16,8 +16,8 @@ function App() {
   const [query, setQuery] = useState<string>('Who founded Microsoft?')
   const [graphRows, setGraphRows] = useState<GraphRow[]>(graphPreview)
   const [searchRows, setSearchRows] = useState<SemanticMatch[]>(semanticMatches)
-  const [status, setStatus] = useState<string>('Using demo data (API not connected yet).')
-  const [apiConnected, setApiConnected] = useState<boolean>(false)
+  const [, setStatus] = useState<string>('Using demo data (API not connected yet).')
+  const [, setApiConnected] = useState<boolean>(false)
   const graphContainerRef = useRef<HTMLDivElement | null>(null)
   const networkRef = useRef<Network | null>(null)
 
@@ -146,7 +146,9 @@ function App() {
           background: 'rgba(255,255,255,0.75)',
         },
         smooth: {
+          enabled: true,
           type: 'dynamic' as const,
+          roundness: 0.4,
         },
       },
       physics: {
@@ -217,8 +219,9 @@ function App() {
     <div className="page">
       <header className="masthead">
         <h1>Knowledge Graph Dashboard</h1>
-        
-        <p className="status" role="status">{status}</p>
+        <p className="subtitle">
+          Graph exploration and semantic search.
+        </p>
       </header>
 
       <section className="kpi-grid" aria-label="KPI Overview">
@@ -317,9 +320,6 @@ function App() {
 
       </main>
 
-      <footer className="footer-note">
-        <strong>API mode:</strong> {apiConnected ? 'Live' : 'Mock'}
-      </footer>
     </div>
   )
 }
