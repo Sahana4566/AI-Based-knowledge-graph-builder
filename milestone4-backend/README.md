@@ -234,12 +234,15 @@ Frontend will call:
 
 For Render, set these environment variables:
 
+- `PYTHON_VERSION=3.11.9` to avoid Python 3.14 build issues with scientific packages
 - `NEO4J_URI`
 - `NEO4J_USER`
 - `NEO4J_PASSWORD`
 - `PINECONE_API_KEY`
 - `PINECONE_INDEX_NAME` if you want to override the default
 - `API_CORS_ORIGINS` with your Vercel URL, for example `https://your-frontend.vercel.app`
+
+Render will also read `runtime.txt` in this folder, which is pinned to Python 3.11.9.
 
 Use a production WSGI server:
 
