@@ -3,6 +3,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def _parse_csv_env(value: str | None, default: list[str]) -> list[str]:
+    if not value:
+        return default
+    parsed = [item.strip() for item in value.split(',') if item.strip()]
+    return parsed or default
+
 class Config:
     """Base configuration"""
     FLASK_ENV = os.getenv('FLASK_ENV', 'development')
@@ -19,12 +26,12 @@ class Config:
     PINECONE_INDEX_NAME = os.getenv('PINECONE_INDEX_NAME', 'semantic-search-index')
     
     # API
-    API_CORS_ORIGINS = [
+    API_CORS_ORIGINS = _parse_csv_env(os.getenv('API_CORS_ORIGINS'), [
         'http://localhost:5173',
         'http://localhost:5174',
         'http://localhost:5175',
         'http://localhost:3000',
-    ]
+    ])
     
     @staticmethod
     def validate():

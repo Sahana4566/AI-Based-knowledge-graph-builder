@@ -65,6 +65,7 @@ PINECONE_INDEX_NAME=semantic-search-index
 FLASK_ENV=development
 FLASK_DEBUG=1
 FLASK_PORT=5000
+API_CORS_ORIGINS=http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:3000
 ```
 
 ### 4. Export ML Models from Milestone 3
@@ -231,12 +232,19 @@ Frontend will call:
 
 ## Production Deployment
 
-1. Set environment variables on server
-2. Use production WSGI server:
+For Render, set these environment variables:
+
+- `NEO4J_URI`
+- `NEO4J_USER`
+- `NEO4J_PASSWORD`
+- `PINECONE_API_KEY`
+- `PINECONE_INDEX_NAME` if you want to override the default
+- `API_CORS_ORIGINS` with your Vercel URL, for example `https://your-frontend.vercel.app`
+
+Use a production WSGI server:
 
 ```bash
-pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:5000 app:create_app()
+gunicorn -w 4 -b 0.0.0.0:$PORT app:app
 ```
 
 3. Use reverse proxy (Nginx) for CORS and load balancing
