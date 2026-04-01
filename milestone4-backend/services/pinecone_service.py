@@ -1,5 +1,3 @@
-from pinecone import Pinecone
-from sentence_transformers import SentenceTransformer
 from config import Config
 from typing import List, Dict, Optional
 
@@ -9,11 +7,22 @@ class PineconeService:
         self.index = None
         self.model = None
         self.connected = False
+
+    def initialize(self):
+        """Initialize Pinecone client and index connection"""
+        if self.connected and self.index:
+            return
         self._initialize()
     
     def _initialize(self):
-        """Initialize Pinecone client and load embedding model"""
+        """Initialize Pinecone client and index connection"""
         try:
+            try:
+                from pinecone import Pinecone
+            except ImportError:
+                print("Pinecone client not installed, running without vector search connectivity")
+                return
+
             if not Config.PINECONE_API_KEY:
                 print("Pinecone: API key not configured")
                 return
@@ -29,18 +38,36 @@ class PineconeService:
             
             self.index = self.pc.Index(index_name)
             
-            # Load embedding model
-            self.model = SentenceTransformer('all-MiniLM-L6-v2')
-            
             self.connected = True
             print("✓ Pinecone connected successfully")
-            print(f"✓ Embedding model loaded (384-dim)")
         
         except Exception as e:
             print(f"✗ Pinecone initialization failed: {str(e)}")
             self.connected = False
             self.index = None
             self.model = None
+
+    def _ensure_initialized(self) -> bool:
+        if self.connected and self.index:
+            return True
+
+        self._initialize()
+        return self.connected and self.index is not None
+
+    def _ensure_model_loaded(self) -> bool:
+        if self.model is not None:
+            return True
+
+        try:
+            from sentence_transformers import SentenceTransformer
+
+            self.model = SentenceTransformer('all-MiniLM-L6-v2')
+            print(f"✓ Embedding model loaded (384-dim)")
+            return True
+        except Exception as e:
+            print(f"✗ Embedding model load failed: {str(e)}")
+            self.model = None
+            return False
     
     def semantic_search(self, query: str, top_k: int = 3) -> List[Dict]:
         """
@@ -53,8 +80,12 @@ class PineconeService:
         Returns:
             List of {id, score, text} dictionaries
         """
-        if not self.connected or not self.index or not self.model:
+        if not self._ensure_initialized():
             print("Pinecone not available, returning mock results")
+            return self._mock_results(query, top_k)
+
+        if not self._ensure_model_loaded():
+            print("Embedding model not available, returning mock results")
             return self._mock_results(query, top_k)
         
         try:

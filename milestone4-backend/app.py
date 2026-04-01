@@ -31,6 +31,9 @@ def create_app():
     @app.route('/health', methods=['GET'])
     def health():
         """Health check endpoint"""
+        neo4j_service.connect()
+        pinecone_service.initialize()
+
         return jsonify({
             'status': 'ok',
             'neo4j': 'connected' if neo4j_service.connected else 'disconnected',

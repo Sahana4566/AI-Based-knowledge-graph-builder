@@ -1,4 +1,3 @@
-from neo4j import GraphDatabase
 from config import Config
 from typing import Optional, List, Dict
 
@@ -6,11 +5,22 @@ class Neo4jService:
     def __init__(self):
         self.driver = None
         self.connected = False
+
+    def connect(self):
+        """Initialize Neo4j connection"""
+        if self.connected and self.driver:
+            return
         self._connect()
     
     def _connect(self):
         """Initialize Neo4j connection"""
         try:
+            try:
+                from neo4j import GraphDatabase
+            except ImportError:
+                print("Neo4j driver not installed, running without graph connectivity")
+                return
+
             if not Config.NEO4J_URI:
                 print("Neo4j: URI not configured")
                 return
@@ -40,6 +50,13 @@ class Neo4jService:
             print(f"✗ Neo4j connection failed: {str(e)}")
             self.connected = False
             self.driver = None
+
+    def _ensure_connected(self) -> bool:
+        if self.connected and self.driver:
+            return True
+
+        self._connect()
+        return self.connected and self.driver is not None
     
     def query_graph(self, entity: str = '', relation: str = '', limit: int = 20) -> List[Dict]:
         """
@@ -53,7 +70,7 @@ class Neo4jService:
         Returns:
             List of {head, relation, tail} dictionaries
         """
-        if not self.connected or not self.driver:
+        if not self._ensure_connected():
             print("Neo4j not available, returning empty results")
             return []
         
@@ -90,7 +107,7 @@ class Neo4jService:
     
     def count_entities(self) -> int:
         """Count total entities in graph"""
-        if not self.connected or not self.driver:
+        if not self._ensure_connected():
             return 0
         
         try:
@@ -102,7 +119,7 @@ class Neo4jService:
     
     def count_relations(self) -> int:
         """Count total relations in graph"""
-        if not self.connected or not self.driver:
+        if not self._ensure_connected():
             return 0
         
         try:
